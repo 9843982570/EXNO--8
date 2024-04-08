@@ -1,0 +1,87 @@
+<%@ page import="java.sql.*" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
+<html>
+<head>
+    <title>Movie Database Information</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 50%;
+            margin: 20px auto;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+<%
+    String url = "jdbc:mysql://localhost:3306/your_database";
+    String username = "your_username";
+    String password = "your_password";
+
+    try {
+        // Load and register the JDBC driver
+        Class.forName("com.mysql.jdbc.Driver");
+
+        // Establish a connection to the database
+        Connection connection = DriverManager.getConnection(url, username, password);
+
+        // Query 1: Total number of movies
+        Statement statement1 = connection.createStatement();
+        ResultSet resultSet1 = statement1.executeQuery("SELECT COUNT(*) AS total_movies FROM movies");
+        resultSet1.next();
+        int totalMovies = resultSet1.getInt("total_movies");
+
+        // Query 2: Average price of all movies
+        Statement statement2 = connection.createStatement();
+        ResultSet resultSet2 = statement2.executeQuery("SELECT AVG(price) AS avg_price FROM movies");
+        resultSet2.next();
+        double avgPrice = resultSet2.getDouble("avg_price");
+
+        // Query 3: Director with the highest-rated movies
+        Statement statement3 = connection.createStatement();
+        ResultSet resultSet3 = statement3.executeQuery("SELECT director FROM movies GROUP BY director ORDER BY AVG(rating) DESC LIMIT 1");
+        resultSet3.next();
+        String topDirector = resultSet3.getString("director");
+
+        // Close all resources
+        resultSet1.close();
+        statement1.close();
+        resultSet2.close();
+        statement2.close();
+        resultSet3.close();
+        statement3.close();
+        connection.close();
+%>
+
+<table>
+    <tr>
+        <th>Information</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td>Total Number of Movies</td>
+        <td><%= totalMovies %></td>
+    </tr>
+    <tr>
+        <td>Average Price of All Movies</td>
+        <td>$<%= String.format("%.2f", avgPrice) %></td>
+    </tr>
+    <tr>
+        <td>Director with Highest-Rated Movies</td>
+        <td><%= topDirector %></td>
+    </tr>
+</table>
+
+<% } catch (Exception e) { %>
+    <p>Error: <%= e.getMessage() %></p>
+<% } %>
+
+</body>
+</html>
